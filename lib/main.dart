@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_final_fullstack/providers/auth_provider.dart';
+import 'package:project_final_fullstack/views/splash/splash_screen.dart';
 import 'package:provider/provider.dart'; // 1. Imported Provider package
 import 'providers/student_provider.dart';
 import 'providers/teacher_provider.dart';
@@ -70,7 +71,7 @@ class StudentManagementApp extends StatelessWidget {
         ),
       ),
       // home: const LoginScreen(),
-      home: const AdminDashboardScreen(),
+        home: const SplashScreen(),
     );
   }
 }

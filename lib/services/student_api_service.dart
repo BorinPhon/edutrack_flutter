@@ -1,59 +1,108 @@
 import 'package:dio/dio.dart';
-import '../models/student_model.dart';
+
+import '../models/student/student_model.dart';
+import '../models/student/student_request.dart';
 import 'api_service.dart';
 
 class StudentApiService {
   final ApiService _apiService = ApiService();
 
-  // GET /api/students
+  //------------------------------------------------------------
+  // GET ALL STUDENTS
+  //------------------------------------------------------------
+
   Future<List<StudentModel>> getAllStudents() async {
     try {
       final response = await _apiService.client.get('/students');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((json) => StudentModel.fromJson(json)).toList();
-      }
-      return [];
-    } catch (e) {
-      throw Exception('Failed to load students: $e');
+      final List data = response.data;
+
+      return data
+          .map((e) => StudentModel.fromJson(e))
+          .toList();
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data["message"] ??
+            "Unable to load students.",
+      );
     }
   }
 
-  // POST /api/students
-  Future<StudentModel> createStudent(StudentModel student) async {
+  //------------------------------------------------------------
+  // GET STUDENT BY ID
+  //------------------------------------------------------------
+
+  Future<StudentModel> getStudentById(int id) async {
+    try {
+      final response =
+      await _apiService.client.get('/students/$id');
+
+      return StudentModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data["message"] ??
+            "Unable to load student.",
+      );
+    }
+  }
+
+  //------------------------------------------------------------
+  // CREATE STUDENT
+  //------------------------------------------------------------
+
+  Future<StudentModel> createStudent(
+      StudentRequest request) async {
     try {
       final response = await _apiService.client.post(
         '/students',
-        data: student.toJson(),
+        data: request.toJson(),
       );
 
       return StudentModel.fromJson(response.data);
-    } catch (e) {
-      throw Exception('Failed to create student: $e');
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data["message"] ??
+            "Unable to create student.",
+      );
     }
   }
 
-  // PUT /api/students/{id}
-  Future<StudentModel> updateStudent(String id, StudentModel student) async {
+  //------------------------------------------------------------
+  // UPDATE STUDENT
+  //------------------------------------------------------------
+
+  Future<StudentModel> updateStudent(
+      int id,
+      StudentRequest request) async {
     try {
       final response = await _apiService.client.put(
         '/students/$id',
-        data: student.toJson(),
+        data: request.toJson(),
       );
 
       return StudentModel.fromJson(response.data);
-    } catch (e) {
-      throw Exception('Failed to update student: $e');
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data["message"] ??
+            "Unable to update student.",
+      );
     }
   }
 
-  // DELETE /api/students/{id}
-  Future<void> deleteStudent(String id) async {
+  //------------------------------------------------------------
+  // DELETE STUDENT
+  //------------------------------------------------------------
+
+  Future<void> deleteStudent(int id) async {
     try {
-      await _apiService.client.delete('/students/$id');
-    } catch (e) {
-      throw Exception('Failed to delete student: $e');
+      await _apiService.client.delete(
+        '/students/$id',
+      );
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data["message"] ??
+            "Unable to delete student.",
+      );
     }
   }
 }

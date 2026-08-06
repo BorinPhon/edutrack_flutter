@@ -35,4 +35,10 @@ class TokenStorage {
   Future<void> clear() async {
     await _storage.deleteAll();
   }
+
+  Future<bool> hasToken() async {
+    final token = await _storage.read(key: accessTokenKey);
+
+    return token != null && token.isNotEmpty;
+  }
 }

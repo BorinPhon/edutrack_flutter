@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../widgets/quick_access_card.dart';
 import '../students/student_list_screen.dart';
 import '../teachers/teacher_list_screen.dart';
 import '../auth/login_screen.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -22,11 +25,26 @@ class AdminDashboardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
-            onPressed: () {
-              Navigator.pushReplacement(
+            onPressed: () async {
+
+              final authProvider = context.read<AuthProvider>();
+
+              await authProvider.logout();
+
+              if(!context.mounted) return;
+
+              Navigator.pushAndRemoveUntil(
+
                 context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
+
+                MaterialPageRoute(
+                  builder: (_) => const LoginScreen(),
+                ),
+
+                    (route) => false,
+
               );
+
             },
           ),
         ],
@@ -126,7 +144,45 @@ class AdminDashboardScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: QuickAccessCard(
+                      title: "Students",
+                      icon: Icons.school,
+                      iconColor: Colors.blue,
+                      backgroundColor: const Color(0xFFEAF4FF),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const StudentListScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
 
+                  const SizedBox(width: 16),
+
+                  Expanded(
+                    child: QuickAccessCard(
+                      title: "Teachers",
+                      icon: Icons.person,
+                      iconColor: Colors.green,
+                      backgroundColor: const Color(0xFFEAF4FF),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const TeacherListScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
 
 
               const SizedBox(height: 28),

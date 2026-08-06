@@ -1,175 +1,97 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/student_model.dart';
+
+import '../../Utils/helper.dart';
+import '../../models/student/student_model.dart';
 import '../../providers/student_provider.dart';
 import 'student_form_screen.dart';
 
 class StudentDetailScreen extends StatelessWidget {
   final StudentModel student;
 
-  const StudentDetailScreen({super.key, required this.student});
-
-  void _showDeleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Student'),
-        content: Text('Are you sure you want to delete ${student.fullName}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-
-              final success = await Provider.of<StudentProvider>(context, listen: false)
-                  .deleteStudent(student.studentId);
-
-              if (!context.mounted) return;
-
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${student.fullName} deleted.'),
-                    backgroundColor: Colors.redAccent,
-                  ),
-                );
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
+  const StudentDetailScreen({
+    super.key,
+    required this.student,
+  });
 
   @override
   Widget build(BuildContext context) {
     const primaryGreen = Color(0xFF2E7D32);
 
     return Consumer<StudentProvider>(
-      builder: (context, studentProvider, child) {
-        final currentStudent = studentProvider.students.firstWhere(
-              (s) => s.studentId == student.studentId,
+      builder: (context, provider, child) {
+        final currentStudent = provider.students.firstWhere(
+              (s) => s.id == student.id,
           orElse: () => student,
         );
 
-        final dobStr = currentStudent.dateOfBirth != null
-            ? '${currentStudent.dateOfBirth!.year}-${currentStudent.dateOfBirth!.month.toString().padLeft(2, '0')}-${currentStudent.dateOfBirth!.day.toString().padLeft(2, '0')}'
-            : 'N/A';
-
         return Scaffold(
           backgroundColor: const Color(0xFFF1F8E9),
+
           appBar: AppBar(
-            title: const Text('Student Profile'),
+            title: const Text("Student Detail"),
             backgroundColor: primaryGreen,
             foregroundColor: Colors.white,
+
             actions: [
+
               IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: () {
-                  Navigator.push(
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => StudentFormScreen(student: currentStudent),
+                      builder: (_) =>
+                          StudentFormScreen(
+                            student: currentStudent,
+                          ),
                     ),
+                  );
+
+                  if (!context.mounted) return;
+
+                  if (result == true) {
+                    await provider.fetchStudents();
+
+                    if (context.mounted) {
+                      Navigator.pop(context, true);
+                    }
+                  }
+                },
+              ),
+
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  showDeleteDialog(
+                    context,
+                    currentStudent,
                   );
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => _showDeleteDialog(context),
-              ),
+
             ],
           ),
+
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20),
+
             child: Column(
               children: [
-                // Header Profile Card
-                Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: const Color(0xFFE8F5E9),
-                          backgroundImage: (currentStudent.photo != null && currentStudent.photo!.isNotEmpty)
-                              ? NetworkImage(currentStudent.photo!)
-                              : null,
-                          child: (currentStudent.photo == null || currentStudent.photo!.isEmpty)
-                              ? Text(
-                            currentStudent.firstName.isNotEmpty ? currentStudent.firstName[0].toUpperCase() : 'S',
-                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: primaryGreen),
-                          )
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          currentStudent.fullName,
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          currentStudent.email ?? 'No email',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: currentStudent.isActive ? Colors.green.shade100 : Colors.red.shade100,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            currentStudent.isActive ? 'Active' : 'Inactive',
-                            style: TextStyle(
-                              color: currentStudent.isActive ? Colors.green.shade800 : Colors.red.shade800,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
 
-                // Details Card
-                Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Personal Details',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryGreen),
-                        ),
-                        const Divider(),
-                        _buildDetailTile(Icons.badge_outlined, 'Student ID', currentStudent.studentId),
-                        _buildDetailTile(Icons.person_outline, 'User ID', currentStudent.userId),
-                        _buildDetailTile(Icons.wc_outlined, 'Gender', currentStudent.gender ?? 'N/A'),
-                        _buildDetailTile(Icons.cake_outlined, 'Date of Birth', dobStr),
-                        _buildDetailTile(Icons.phone_outlined, 'Phone', currentStudent.phone ?? 'N/A'),
-                        _buildDetailTile(Icons.home_outlined, 'Address', currentStudent.address ?? 'N/A'),
-                        _buildDetailTile(Icons.image_outlined, 'Photo URL', currentStudent.photo ?? 'N/A'),
-                      ],
-                    ),
-                  ),
-                ),
+                buildHeader(currentStudent),
+
+                const SizedBox(height: 20),
+
+                buildPersonalInformation(currentStudent),
+
+                const SizedBox(height: 20),
+
+                buildAccountInformation(currentStudent),
+
+                const SizedBox(height: 20),
+                buildAuditInformation(currentStudent),
+
               ],
             ),
           ),
@@ -177,23 +99,298 @@ class StudentDetailScreen extends StatelessWidget {
       },
     );
   }
+  Widget buildAuditInformation(StudentModel student) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
-  Widget _buildDetailTile(IconData icon, String label, String value) {
+            const Text(
+              "Audit Information",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(height: 30),
+
+            buildInfoRow(
+              "Created At",
+              formatDate(student.createdAt),
+            ),
+
+            buildInfoRow(
+              "Updated At",
+              formatDate(student.updatedAt),
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+  Widget buildAccountInformation(StudentModel student) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const Text(
+              "Account Information",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(height: 30),
+
+            buildInfoRow(
+              "Username",
+              student.username,
+            ),
+
+            buildInfoRow(
+              "Email",
+              student.email ?? "-",
+            ),
+
+            buildInfoRow(
+              "Role",
+              student.role ?? "-",
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+  Widget buildPersonalInformation(StudentModel student) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const Text(
+              "Personal Information",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(height: 30),
+
+            buildInfoRow(
+              "Student ID",
+              student.id.toString(),
+            ),
+
+            buildInfoRow(
+              "User ID",
+              student.userId.toString(),
+            ),
+
+            buildInfoRow(
+              "First Name",
+              student.firstName,
+            ),
+
+            buildInfoRow(
+              "Last Name",
+              student.lastName,
+            ),
+
+            buildInfoRow(
+              "Gender",
+              student.gender ?? "-",
+            ),
+
+            buildInfoRow(
+              "Date of Birth",
+              student.dateOfBirth?.toString().split(" ").first ?? "-",
+            ),
+
+            buildInfoRow(
+              "Phone",
+              student.phone ?? "-",
+            ),
+
+            buildInfoRow(
+              "Address",
+              student.address ?? "-",
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+  Widget buildInfoRow(
+      String title,
+      String value,
+      ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: const Color(0xFF2E7D32)),
-          const SizedBox(width: 12),
+
           SizedBox(
-            width: 100,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
+            width: 120,
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
+              ),
+            ),
           ),
+
           Expanded(
-            child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 15,
+              ),
+            ),
           ),
+
         ],
       ),
     );
+  }
+  Widget buildHeader(StudentModel student) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 42,
+              backgroundColor: Colors.green.shade100,
+              child: Text(
+                student.firstName.isNotEmpty
+                    ? student.firstName[0].toUpperCase()
+                    : "S",
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2E7D32),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              student.fullName,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "@${student.username}",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Chip(
+              avatar: Icon(
+                Icons.circle,
+                color: student.isActive ? Colors.green : Colors.red,
+                size: 14,
+              ),
+              label: Text(
+                student.isActive ? "Active" : "Inactive",
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  Future<void> showDeleteDialog(
+      BuildContext context,
+      StudentModel student,
+      ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete Student"),
+          content: Text(
+            "Are you sure you want to delete '${student.fullName}'?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) return;
+
+    if (!context.mounted) return;
+
+    final provider = context.read<StudentProvider>();
+
+    final success = await provider.deleteStudent(student.id);
+
+    if (!context.mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Student deleted successfully."),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage ?? "Delete failed."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
