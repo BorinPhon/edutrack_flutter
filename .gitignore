@@ -1,65 +1,112 @@
-# Flutter/Dart
+# =====================================================
+# Flutter / Dart
+# =====================================================
+
 .dart_tool/
 .packages
 .pub/
 .pub-cache/
 build/
 
-# Flutter generated
 .flutter-plugins
 .flutter-plugins-dependencies
-.flutter-plugins-dependencies
-.flutter-plugins
 .metadata
 
+# =====================================================
 # IDE
+# =====================================================
+
 .idea/
 .vscode/
+*.iml
 
+# =====================================================
+# Logs
+# =====================================================
+
+*.log
+
+# =====================================================
+# Environment Files
+# =====================================================
+
+.env
+.env.*
+
+# =====================================================
+# Coverage
+# =====================================================
+
+coverage/
+
+# =====================================================
 # Android
+# =====================================================
+
 android/.gradle/
 android/local.properties
+
 android/app/debug/
 android/app/profile/
 android/app/release/
 
+# =====================================================
 # iOS
+# =====================================================
+
 ios/Pods/
 ios/.symlinks/
+
+ios/Flutter/ephemeral/
 ios/Flutter/Flutter.framework
 ios/Flutter/Flutter.podspec
-ios/Flutter/ephemeral/
 
+# =====================================================
 # macOS
+# =====================================================
+
 macos/Flutter/ephemeral/
 
+# =====================================================
 # Linux
+# =====================================================
+
 linux/flutter/ephemeral/
 
+# =====================================================
 # Windows
+# =====================================================
+
 windows/flutter/ephemeral/
 
-# Generated plugin registrants
+# =====================================================
+# Generated Flutter Files
+# =====================================================
+
+**/.plugin_symlinks/
+**/ephemeral/
+
 **/GeneratedPluginRegistrant.*
 **/generated_plugin_registrant.*
+**/generated_plugins.cmake
 
-# Logs
-*.log
+# =====================================================
+# Signing Keys
+# =====================================================
 
-# Environment
-.env
-.env.*
-
-# Coverage
-coverage/
-
-# IntelliJ
-*.iml
-
-# Keystore (Don't commit signing keys)
 *.jks
 *.keystore
 
+# =====================================================
 # Firebase
+# =====================================================
+
 google-services.json
 GoogleService-Info.plist
+
+# =====================================================
+# OS Files
+# =====================================================
+
+.DS_Store
+Thumbs.db
