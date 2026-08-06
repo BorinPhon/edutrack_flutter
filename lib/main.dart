@@ -4,7 +4,6 @@ import 'package:project_final_fullstack/views/splash/splash_screen.dart';
 import 'package:provider/provider.dart'; // 1. Imported Provider package
 import 'providers/student_provider.dart';
 import 'providers/teacher_provider.dart';
-import 'views/auth/login_screen.dart';
 
 // 1. Import your AdminDashboardScreen
 import 'views/admin/admin_dashboard_screen.dart';
@@ -16,6 +15,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => StudentProvider()),
+        ChangeNotifierProvider(create: (_) => TeacherProvider()),
         ChangeNotifierProvider(create: (_) => TeacherProvider()),
       ],
       child: const StudentManagementApp(),

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../Utils/token_storage.dart';
@@ -43,7 +44,55 @@ class AuthProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+
+      if (e is DioException) {
+
+        switch (e.response?.statusCode) {
+
+          case 400:
+            _errorMessage = "Invalid request.";
+            break;
+
+          case 401:
+            _errorMessage = "Invalid username or password.";
+            break;
+
+          case 403:
+            _errorMessage = "Access denied.";
+            break;
+
+          case 404:
+            _errorMessage = "Service not found.";
+            break;
+
+          case 500:
+            _errorMessage = "Internal server error.";
+            break;
+
+          default:
+
+            if (e.type == DioExceptionType.connectionTimeout ||
+                e.type == DioExceptionType.receiveTimeout ||
+                e.type == DioExceptionType.sendTimeout) {
+
+              _errorMessage = "Connection timeout.";
+
+            } else if (e.type == DioExceptionType.connectionError) {
+
+              _errorMessage = "Unable to connect to server.";
+
+            } else {
+
+              _errorMessage = "Login failed.";
+            }
+
+        }
+
+      } else {
+
+        _errorMessage = "Unexpected error occurred.";
+
+      }
 
       _isLoading = false;
       notifyListeners();

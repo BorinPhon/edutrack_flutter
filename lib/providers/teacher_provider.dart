@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
-import '../models/teacher_model.dart';
+
+import '../models/teacher/teacher_model.dart';
+import '../models/teacher/teacher_request.dart';
 import '../services/teacher_api_service.dart';
 
 class TeacherProvider extends ChangeNotifier {
   final TeacherApiService _apiService = TeacherApiService();
 
   List<TeacherModel> _teachers = [];
+
   bool _isLoading = false;
+
   String? _errorMessage;
 
   List<TeacherModel> get teachers => _teachers;
+
   bool get isLoading => _isLoading;
+
   String? get errorMessage => _errorMessage;
 
-  // 1. READ: GET /api/teachers
+  // ==========================
+  // GET ALL
+  // ==========================
   Future<void> fetchTeachers() async {
     _isLoading = true;
     _errorMessage = null;
@@ -22,82 +30,124 @@ class TeacherProvider extends ChangeNotifier {
     try {
       _teachers = await _apiService.getAllTeachers();
     } catch (e) {
-      _errorMessage = 'Failed to load teachers.';
-      debugPrint('TeacherProvider fetch error: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      _errorMessage = e.toString();
+      debugPrint(e.toString());
     }
+
+    _isLoading = false;
+    notifyListeners();
   }
 
-  // 2. CREATE: POST /api/teachers
-  Future<bool> addTeacher(TeacherModel teacher) async {
+  // ==========================
+  // CREATE
+  // ==========================
+  Future<bool> addTeacher(
+      TeacherRequest request,
+      ) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final createdTeacher = await _apiService.createTeacher(teacher);
-      _teachers.add(createdTeacher);
+      final teacher =
+      await _apiService.createTeacher(request);
+
+      _teachers.add(teacher);
+
       _isLoading = false;
       notifyListeners();
+
       return true;
     } catch (e) {
-      _errorMessage = 'Could not create teacher record.';
-      debugPrint('TeacherProvider add error: $e');
+      _errorMessage = e.toString();
+
       _isLoading = false;
       notifyListeners();
+
       return false;
     }
   }
 
-  // 3. UPDATE: PUT /api/teachers/{id}
-  Future<bool> updateTeacher(TeacherModel updatedTeacher) async {
+  // ==========================
+  // UPDATE
+  // ==========================
+  Future<bool> updateTeacher(
+      int id,
+      TeacherRequest request,
+      ) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final result = await _apiService.updateTeacher(
-        updatedTeacher.teacherId,
-        updatedTeacher,
+      final teacher =
+      await _apiService.updateTeacher(id, request);
+
+      final index = _teachers.indexWhere(
+            (t) => t.id == id,
       );
 
-      final index = _teachers.indexWhere((t) => t.teacherId == result.teacherId);
       if (index != -1) {
-        _teachers[index] = result;
+        _teachers[index] = teacher;
       }
 
       _isLoading = false;
       notifyListeners();
+
       return true;
     } catch (e) {
-      _errorMessage = 'Could not update teacher details.';
-      debugPrint('TeacherProvider update error: $e');
+      _errorMessage = e.toString();
+
       _isLoading = false;
       notifyListeners();
+
       return false;
     }
   }
 
-  // 4. DELETE: DELETE /api/teachers/{id}
-  Future<bool> deleteTeacher(String teacherId) async {
+  // ==========================
+  // DELETE
+  // ==========================
+  Future<bool> deleteTeacher(
+      int id,
+      ) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await _apiService.deleteTeacher(teacherId);
-      _teachers.removeWhere((t) => t.teacherId == teacherId);
+      await _apiService.deleteTeacher(id);
+
+      _teachers.removeWhere(
+            (teacher) => teacher.id == id,
+      );
+
       _isLoading = false;
       notifyListeners();
+
       return true;
     } catch (e) {
-      _errorMessage = 'Could not delete teacher.';
-      debugPrint('TeacherProvider delete error: $e');
+      _errorMessage = e.toString();
+
       _isLoading = false;
       notifyListeners();
+
       return false;
+    }
+  }
+
+  // ==========================
+  // GET BY ID (Optional)
+  // ==========================
+  Future<TeacherModel?> getTeacherById(
+      int id,
+      ) async {
+    try {
+      return await _apiService.getTeacherById(id);
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return null;
     }
   }
 }

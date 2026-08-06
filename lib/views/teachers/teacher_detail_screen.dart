@@ -1,187 +1,98 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/teacher_model.dart';
+
+import '../../Utils/helper.dart';
+import '../../models/teacher/teacher_model.dart';
 import '../../providers/teacher_provider.dart';
 import 'teacher_form_screen.dart';
-
 class TeacherDetailScreen extends StatelessWidget {
   final TeacherModel teacher;
 
-  const TeacherDetailScreen({super.key, required this.teacher});
-
-  void _showDeleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Teacher'),
-        content: Text('Are you sure you want to delete ${teacher.fullName}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-
-              final success = await Provider.of<TeacherProvider>(context, listen: false)
-                  .deleteTeacher(teacher.teacherId);
-
-              if (!context.mounted) return;
-
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${teacher.fullName} deleted.'),
-                    backgroundColor: Colors.redAccent,
-                  ),
-                );
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
+  const TeacherDetailScreen({
+    super.key,
+    required this.teacher,
+  });
 
   @override
   Widget build(BuildContext context) {
     const primaryGreen = Color(0xFF2E7D32);
 
     return Consumer<TeacherProvider>(
-      builder: (context, teacherProvider, child) {
-        final currentTeacher = teacherProvider.teachers.firstWhere(
-              (t) => t.teacherId == teacher.teacherId,
+      builder: (context, provider, child) {
+
+        final currentTeacher = provider.teachers.firstWhere(
+              (t) => t.id == teacher.id,
           orElse: () => teacher,
         );
 
-        final dobStr = currentTeacher.dateOfBirth != null
-            ? '${currentTeacher.dateOfBirth!.year}-${currentTeacher.dateOfBirth!.month.toString().padLeft(2, '0')}-${currentTeacher.dateOfBirth!.day.toString().padLeft(2, '0')}'
-            : 'N/A';
-
-        final hireStr = currentTeacher.hireDate != null
-            ? '${currentTeacher.hireDate!.year}-${currentTeacher.hireDate!.month.toString().padLeft(2, '0')}-${currentTeacher.hireDate!.day.toString().padLeft(2, '0')}'
-            : 'N/A';
-
         return Scaffold(
-          backgroundColor: const Color(0xFFF1F8E9),
+          backgroundColor: const Color(0xFFF5F7FA),
+
           appBar: AppBar(
-            title: const Text('Teacher Profile'),
+            title: const Text("Teacher Detail"),
             backgroundColor: primaryGreen,
             foregroundColor: Colors.white,
+
             actions: [
+
               IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: () {
-                  Navigator.push(
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+
+                  final result =
+                  await Navigator.push<bool>(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TeacherFormScreen(teacher: currentTeacher),
+                      builder: (_) =>
+                          TeacherFormScreen(
+                            teacher: currentTeacher,
+                          ),
                     ),
+                  );
+
+                  if (result == true) {
+                    await provider.fetchTeachers();
+
+                    if (context.mounted) {
+                      Navigator.pop(context, true);
+                    }
+                  }
+                },
+              ),
+
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  showDeleteDialog(
+                    context,
+                    currentTeacher,
                   );
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => _showDeleteDialog(context),
-              ),
+
             ],
           ),
+
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20),
+
             child: Column(
               children: [
-                // Header Profile Card
-                Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: const Color(0xFFE8F5E9),
-                          backgroundImage: (currentTeacher.photo != null && currentTeacher.photo!.isNotEmpty)
-                              ? NetworkImage(currentTeacher.photo!)
-                              : null,
-                          child: (currentTeacher.photo == null || currentTeacher.photo!.isEmpty)
-                              ? Text(
-                            currentTeacher.firstName.isNotEmpty ? currentTeacher.firstName[0].toUpperCase() : 'T',
-                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: primaryGreen),
-                          )
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          currentTeacher.fullName,
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          currentTeacher.position ?? 'Faculty Member',
-                          style: const TextStyle(color: primaryGreen, fontWeight: FontWeight.w600, fontSize: 15),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          currentTeacher.email ?? 'No email',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: currentTeacher.isActive ? Colors.green.shade100 : Colors.red.shade100,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            currentTeacher.isActive ? 'Active' : 'Inactive',
-                            style: TextStyle(
-                              color: currentTeacher.isActive ? Colors.green.shade800 : Colors.red.shade800,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
 
-                // Employment & Personal Details Card
-                Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Employment & Personal Info',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryGreen),
-                        ),
-                        const Divider(),
-                        _buildDetailTile(Icons.badge_outlined, 'Teacher ID', currentTeacher.teacherId),
-                        _buildDetailTile(Icons.person_outline, 'User ID', currentTeacher.userId),
-                        _buildDetailTile(Icons.school_outlined, 'Qualification', currentTeacher.qualification ?? 'N/A'),
-                        _buildDetailTile(Icons.attach_money, 'Salary', currentTeacher.salary != null ? '\$${currentTeacher.salary!.toStringAsFixed(2)}' : 'N/A'),
-                        _buildDetailTile(Icons.calendar_month_outlined, 'Hire Date', hireStr),
-                        _buildDetailTile(Icons.wc_outlined, 'Gender', currentTeacher.gender ?? 'N/A'),
-                        _buildDetailTile(Icons.cake_outlined, 'Date of Birth', dobStr),
-                        _buildDetailTile(Icons.phone_outlined, 'Phone', currentTeacher.phone ?? 'N/A'),
-                        _buildDetailTile(Icons.home_outlined, 'Address', currentTeacher.address ?? 'N/A'),
-                        _buildDetailTile(Icons.image_outlined, 'Photo URL', currentTeacher.photo ?? 'N/A'),
-                      ],
-                    ),
-                  ),
-                ),
+                buildHeader(currentTeacher),
+
+                const SizedBox(height: 20),
+
+                buildPersonalInformation(currentTeacher),
+
+                const SizedBox(height: 20),
+
+                buildAccountInformation(currentTeacher),
+
+                const SizedBox(height: 20),
+                buildAuditInformation(currentTeacher),
+
+
               ],
             ),
           ),
@@ -189,23 +100,338 @@ class TeacherDetailScreen extends StatelessWidget {
       },
     );
   }
+  Widget buildHeader(
+      TeacherModel teacher,
+      ) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
 
-  Widget _buildDetailTile(IconData icon, String label, String value) {
+            CircleAvatar(
+              radius: 42,
+              backgroundColor: Colors.green.shade100,
+              child: Text(
+                teacher.firstName.isNotEmpty
+                    ? teacher.firstName[0].toUpperCase()
+                    : "T",
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2E7D32),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            Text(
+              teacher.fullName,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            Text(
+              "@${teacher.username}",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 15,
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            Text(
+              teacher.email ?? "-",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            Chip(
+              avatar: Icon(
+                Icons.circle,
+                size: 14,
+                color: teacher.isActive
+                    ? Colors.green
+                    : Colors.red,
+              ),
+              label: Text(
+                teacher.isActive
+                    ? "Active"
+                    : "Inactive",
+              ),
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+  Widget buildPersonalInformation(
+      TeacherModel teacher,
+      ) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const Text(
+              "Personal Information",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(height: 30),
+
+            buildInfoRow(
+              "Teacher ID",
+              teacher.id.toString(),
+            ),
+
+            buildInfoRow(
+              "User ID",
+              teacher.userId.toString(),
+            ),
+
+            buildInfoRow(
+              "First Name",
+              teacher.firstName,
+            ),
+
+            buildInfoRow(
+              "Last Name",
+              teacher.lastName,
+            ),
+
+            buildInfoRow(
+              "Gender",
+              teacher.gender ?? "-",
+            ),
+
+            buildInfoRow(
+              "Date of Birth",
+              teacher.dateOfBirth?.toString().split(" ").first ?? "-",
+            ),
+
+            buildInfoRow(
+              "Phone",
+              teacher.phone ?? "-",
+            ),
+
+            buildInfoRow(
+              "Address",
+              teacher.address ?? "-",
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+  Widget buildInfoRow(
+      String title,
+      String value,
+      ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: const Color(0xFF2E7D32)),
-          const SizedBox(width: 12),
+
           SizedBox(
-            width: 110,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
+            width: 120,
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
+              ),
+            ),
           ),
+
           Expanded(
-            child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 15,
+              ),
+            ),
           ),
+
         ],
       ),
     );
+  }
+  Widget buildAccountInformation(
+      TeacherModel teacher,
+      ) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const Text(
+              "Account Information",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(height: 30),
+
+            buildInfoRow(
+              "Username",
+              teacher.username,
+            ),
+
+            buildInfoRow(
+              "Email",
+              teacher.email ?? "-",
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+  Widget buildAuditInformation(
+      TeacherModel teacher,
+      ) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const Text(
+              "Audit Information",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(height: 30),
+
+            buildInfoRow(
+              "Created At",
+              formatDate(teacher.createdAt),
+            ),
+
+            buildInfoRow(
+              "Updated At",
+              formatDate(teacher.updatedAt),
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+  Future<void> showDeleteDialog(
+      BuildContext context,
+      TeacherModel teacher,
+      ) async {
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete Teacher"),
+          content: Text(
+            "Are you sure you want to delete '${teacher.fullName}'?",
+          ),
+          actions: [
+
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text("Cancel"),
+            ),
+
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text("Delete"),
+            ),
+
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) return;
+
+    if (!context.mounted) return;
+
+    final provider = context.read<TeacherProvider>();
+
+    final success =
+    await provider.deleteTeacher(teacher.id);
+
+    if (!context.mounted) return;
+
+    if (success) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Teacher deleted successfully."),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context, true);
+
+    } else {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.errorMessage ??
+                "Delete failed.",
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+    }
   }
 }
