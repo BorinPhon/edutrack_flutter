@@ -1,14 +1,12 @@
-import 'package:flutter/foundation.dart'; // Add this line
 import 'package:dio/dio.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+
+import '../Utils/ token_storage.dart';
 
 class ApiService {
   late final Dio _dio;
 
-  // Base URL configuration:
-  // Use 'http://10.0.2.2:8080/api' for Android Emulator
-  // Use 'http://localhost:8080/api' for iOS Simulator / Web / Desktop
-  static const String baseUrl = 'http://10.0.2.2:8080/api';
+  static const String baseUrl = 'http://38.242.236.109:8090/api';
 
   ApiService() {
     _dio = Dio(
@@ -23,20 +21,39 @@ class ApiService {
       ),
     );
 
-    // Add interceptors for debugging and handling authorization tokens
     _dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
-          debugPrint('HTTP Request: ${options.method} -> ${options.path}');
-          return handler.next(options);
+        onRequest: (options, handler) async {
+          final tokenStorage = TokenStorage();
+
+          final token = await tokenStorage.getAccessToken();
+
+          if (token != null && token.isNotEmpty) {
+            options.headers["Authorization"] = "Bearer $token";
+          }
+
+          debugPrint(
+              "REQUEST ${options.method} ${options.uri}");
+
+          debugPrint("HEADERS : ${options.headers}");
+
+          handler.next(options);
         },
+
         onResponse: (response, handler) {
-          debugPrint('HTTP Response: [${response.statusCode}] -> ${response.requestOptions.path}');
-          return handler.next(response);
+          debugPrint(
+              "RESPONSE ${response.statusCode} ${response.requestOptions.uri}");
+
+          handler.next(response);
         },
-        onError: (DioException error, handler) {
-          debugPrint('HTTP Error: ${error.message} -> ${error.response?.statusCode}');
-          return handler.next(error);
+
+        onError: (error, handler) {
+          debugPrint(
+              "ERROR ${error.response?.statusCode}");
+
+          debugPrint(error.message);
+
+          handler.next(error);
         },
       ),
     );

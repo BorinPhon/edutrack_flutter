@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_final_fullstack/providers/auth_provider.dart';
 import 'package:provider/provider.dart'; // 1. Imported Provider package
 import 'providers/student_provider.dart';
 import 'providers/teacher_provider.dart';
@@ -12,6 +13,7 @@ void main() {
     // 2. Wrapped root app with MultiProvider
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => StudentProvider()),
         ChangeNotifierProvider(create: (_) => TeacherProvider()),
       ],
