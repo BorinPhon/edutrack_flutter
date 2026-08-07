@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../../providers/student_provider.dart';
 import '../../models/student/student_model.dart';
+import '../admin/admin_dashboard_screen.dart';
+import '../admin/app_bottom_navigation.dart';
+import '../admin/profile_screen.dart';
+import '../teachers/teacher_list_screen.dart';
 import 'student_detail_screen.dart';
 import 'student_form_screen.dart';
 
@@ -112,6 +116,9 @@ class _StudentListScreenState extends State<StudentListScreen> {
             await context.read<StudentProvider>().fetchStudents();
           }
         },
+      ),
+      bottomNavigationBar: const AppBottomNavigation(
+        currentIndex: 1,
       ),
     );
   }

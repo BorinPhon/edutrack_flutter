@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../models/teacher/teacher_model.dart';
 import '../../providers/teacher_provider.dart';
+import '../admin/admin_dashboard_screen.dart';
+import '../admin/app_bottom_navigation.dart';
+import '../admin/profile_screen.dart';
 import 'teacher_detail_screen.dart';
 import 'teacher_form_screen.dart';
 
@@ -140,6 +143,9 @@ class _TeacherListScreenState
                 .fetchTeachers();
           }
         },
+      ),
+      bottomNavigationBar: const AppBottomNavigation(
+        currentIndex: 2,
       ),
     );
   }

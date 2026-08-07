@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../auth/login_screen.dart';
+import '../teachers/teacher_list_screen.dart';
+import 'admin_dashboard_screen.dart';
+import 'app_bottom_navigation.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -208,6 +211,9 @@ class ProfileScreen extends StatelessWidget {
 
           ],
         ),
+      ),
+      bottomNavigationBar: const AppBottomNavigation(
+        currentIndex: 3,
       ),
     );
   }

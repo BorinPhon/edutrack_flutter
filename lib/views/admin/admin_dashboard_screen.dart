@@ -7,6 +7,7 @@ import '../teachers/teacher_list_screen.dart';
 import '../auth/login_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import 'app_bottom_navigation.dart';
 import 'notification_screen.dart';
 import '../../providers/student_provider.dart';
 import '../../providers/teacher_provider.dart';
@@ -22,7 +23,6 @@ class AdminDashboardScreen extends StatefulWidget {
 class _AdminDashboardScreenState
     extends State<AdminDashboardScreen> {
 
-  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -40,6 +40,8 @@ class _AdminDashboardScreenState
 
     const primaryGreen = Color(0xFF2E7D32);
     const darkGreen = Color(0xFF1B5E20);
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.loginResponse?.user;
 
     return Scaffold(
       drawer: Drawer(
@@ -47,20 +49,26 @@ class _AdminDashboardScreenState
           padding: EdgeInsets.zero,
           children: [
 
-            const UserAccountsDrawerHeader(
+            UserAccountsDrawerHeader(
 
-              accountName: Text("Administrator"),
+              accountName: Text(
+              user != null
+              ? "${user.firstName} ${user.lastName}"
+                : "Administrator",
+              ),
 
-              accountEmail: Text("admin@school.com"),
+              accountEmail: Text(
+                user?.email ?? "",
+              ),
 
-              currentAccountPicture: CircleAvatar(
+              currentAccountPicture: const CircleAvatar(
                 child: Icon(
                   Icons.person,
                   size: 40,
                 ),
               ),
 
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0xFF2E7D32),
               ),
             ),
@@ -108,7 +116,20 @@ class _AdminDashboardScreenState
 
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text("Profile"),
+              onTap: () {
+                Navigator.pop(context);
 
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(),
+                  ),
+                );
+              },
+            ),
             const Divider(),
 
             ListTile(
@@ -186,35 +207,9 @@ class _AdminDashboardScreenState
 
         ],
       ),
-      body: _getCurrentPage(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: primaryGreen,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            label: "Students",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Teachers",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: "Profile",
-          ),
-        ],
+      body: _buildHomePage(),
+      bottomNavigationBar: const AppBottomNavigation(
+        currentIndex: 0,
       ),
     );
   }
@@ -319,29 +314,6 @@ class _AdminDashboardScreenState
     );
   }
 
-  // 👇 OUTSIDE build()
-  Widget _getCurrentPage() {
-
-    switch (_selectedIndex) {
-
-      case 0:
-        return _buildHomePage();
-
-      case 1:
-        return const StudentListScreen();
-
-      case 2:
-        return const TeacherListScreen();
-
-      case 3:
-        return const ProfileScreen();
-
-      default:
-        return _buildHomePage();
-
-    }
-
-  }
   Widget _buildHomePage() {
     const primaryGreen = Color(0xFF2E7D32);
     const darkGreen = Color(0xFF1B5E20);
@@ -357,6 +329,8 @@ class _AdminDashboardScreenState
     }
     final studentCount = context.watch<StudentProvider>().students.length;
     final teacherCount = context.watch<TeacherProvider>().teachers.length;
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.loginResponse?.user;
     return SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -381,7 +355,9 @@ class _AdminDashboardScreenState
                 const SizedBox(height: 4),
 
                 Text(
-                  "Administrator",
+                  user != null
+                      ? "${user.firstName} ${user.lastName}"
+                      : "Administrator",
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade700,
@@ -411,9 +387,12 @@ class _AdminDashboardScreenState
                         icon: Icons.school,
                         color: primaryGreen,
                         onTap: () {
-                          setState(() {
-                            _selectedIndex = 1;
-                          });
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const StudentListScreen(),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -427,9 +406,12 @@ class _AdminDashboardScreenState
                         icon: Icons.person_outline,
                         color: Colors.green,
                         onTap: () {
-                          setState(() {
-                            _selectedIndex = 2;
-                          });
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TeacherListScreen(),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -460,9 +442,12 @@ class _AdminDashboardScreenState
                         iconColor: Colors.blue,
                         backgroundColor: const Color(0xFFEAF4FF),
                         onTap: () {
-                          setState(() {
-                            _selectedIndex = 1;
-                          });
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const StudentListScreen(),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -476,9 +461,12 @@ class _AdminDashboardScreenState
                         iconColor: Colors.green,
                         backgroundColor: const Color(0xFFEAF4FF),
                         onTap: () {
-                          setState(() {
-                            _selectedIndex = 2;
-                          });
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TeacherListScreen(),
+                            ),
+                          );
                         },
                       ),
                     ),
