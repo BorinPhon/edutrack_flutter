@@ -1,22 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:project_final_fullstack/providers/auth_provider.dart';
-import 'package:project_final_fullstack/views/splash/splash_screen.dart';
-import 'package:provider/provider.dart'; // 1. Imported Provider package
+import 'package:provider/provider.dart';
+
+import 'providers/auth_provider.dart';
 import 'providers/student_provider.dart';
 import 'providers/teacher_provider.dart';
+import 'providers/theme_provider.dart';
 
-// 1. Import your AdminDashboardScreen
-import 'views/admin/admin_dashboard_screen.dart';
+import 'views/splash/splash_screen.dart';
 
 void main() {
   runApp(
-    // 2. Wrapped root app with MultiProvider
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => StudentProvider()),
-        ChangeNotifierProvider(create: (_) => TeacherProvider()),
-        ChangeNotifierProvider(create: (_) => TeacherProvider()),
+
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => StudentProvider(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => TeacherProvider(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+        ),
+
       ],
       child: const StudentManagementApp(),
     ),
@@ -29,49 +41,144 @@ class StudentManagementApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const primaryGreen = Color(0xFF2E7D32);
-    const darkGreen = Color(0xFF1B5E20);
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'StudentManagement',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: primaryGreen,
-          primary: primaryGreen,
-        ),
-        useMaterial3: true,
-        // Global input field theme configured for green borders
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          labelStyle: const TextStyle(color: Colors.black87),
-          prefixIconColor: primaryGreen,
-          suffixIconColor: primaryGreen,
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          // Default unselected border
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'EduTrack',
+
+          themeMode: themeProvider.themeMode,
+
+          //-----------------------------------
+          // LIGHT THEME
+          //-----------------------------------
+
+          theme: ThemeData(
+            useMaterial3: true,
+
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: primaryGreen,
+              brightness: Brightness.light,
+            ),
+
+            scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+
+            appBarTheme: const AppBarTheme(
+              backgroundColor: primaryGreen,
+              foregroundColor: Colors.white,
+              centerTitle: true,
+            ),
+
+            floatingActionButtonTheme:
+            const FloatingActionButtonThemeData(
+              backgroundColor: primaryGreen,
+              foregroundColor: Colors.white,
+            ),
+
+            cardTheme: CardThemeData(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: Colors.white,
+
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.grey.shade400,
+                ),
+              ),
+
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: primaryGreen,
+                  width: 2,
+                ),
+              ),
+
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.red,
+                ),
+              ),
+
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.red,
+                  width: 2,
+                ),
+              ),
+            ),
           ),
-          // Focused / Inserting border (Green)
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: primaryGreen, width: 2.0),
+
+          //-----------------------------------
+          // DARK THEME
+          //-----------------------------------
+
+          darkTheme: ThemeData(
+            useMaterial3: true,
+
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: primaryGreen,
+              brightness: Brightness.dark,
+            ),
+
+            appBarTheme: const AppBarTheme(
+              centerTitle: true,
+            ),
+
+            floatingActionButtonTheme:
+            const FloatingActionButtonThemeData(
+              backgroundColor: primaryGreen,
+              foregroundColor: Colors.white,
+            ),
+
+            cardTheme: CardThemeData(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: primaryGreen,
+                  width: 2,
+                ),
+              ),
+            ),
           ),
-          // Error border
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.redAccent, width: 2.0),
-          ),
-        ),
-      ),
-      // home: const LoginScreen(),
-        home: const SplashScreen(),
+
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

@@ -1,207 +1,220 @@
 import 'package:flutter/material.dart';
+import 'package:project_final_fullstack/views/admin/profile_screen.dart';
+import 'package:project_final_fullstack/views/admin/settings_screen.dart';
 import '../../widgets/quick_access_card.dart';
 import '../students/student_list_screen.dart';
 import '../teachers/teacher_list_screen.dart';
 import '../auth/login_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import 'notification_screen.dart';
+import '../../providers/student_provider.dart';
+import '../../providers/teacher_provider.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<AdminDashboardScreen> createState() =>
+      _AdminDashboardScreenState();
+}
+
+class _AdminDashboardScreenState
+    extends State<AdminDashboardScreen> {
+
+  int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() async {
+      await context.read<StudentProvider>().fetchStudents();
+      await context.read<TeacherProvider>().fetchTeachers();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context)  {
+
+
     const primaryGreen = Color(0xFF2E7D32);
     const darkGreen = Color(0xFF1B5E20);
 
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+
+            const UserAccountsDrawerHeader(
+
+              accountName: Text("Administrator"),
+
+              accountEmail: Text("admin@school.com"),
+
+              currentAccountPicture: CircleAvatar(
+                child: Icon(
+                  Icons.person,
+                  size: 40,
+                ),
+              ),
+
+              decoration: BoxDecoration(
+                color: Color(0xFF2E7D32),
+              ),
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text("Dashboard"),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.school),
+              title: const Text("Students"),
+              onTap: () {
+
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                    const StudentListScreen(),
+                  ),
+                );
+
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text("Teachers"),
+              onTap: () {
+
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                    const TeacherListScreen(),
+                  ),
+                );
+
+              },
+            ),
+
+            const Divider(),
+
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text("Settings"),
+              onTap: () {
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SettingsScreen(),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Logout"),
+              onTap: () async {
+
+                final authProvider =
+                context.read<AuthProvider>();
+
+                await authProvider.logout();
+
+                if (!context.mounted) return;
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                    const LoginScreen(),
+                  ),
+                      (route) => false,
+                );
+
+              },
+            ),
+
+          ],
+        ),
+      ),
       backgroundColor: const Color(0xFFF1F8E9), // Soft Mint Background
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: const Text("Home"),
         backgroundColor: primaryGreen,
         foregroundColor: Colors.white,
-        elevation: 0,
+
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
+
         actions: [
+
           IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () async {
-
-              final authProvider = context.read<AuthProvider>();
-
-              await authProvider.logout();
-
-              if(!context.mounted) return;
-
-              Navigator.pushAndRemoveUntil(
-
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () {
+              Navigator.push(
                 context,
-
                 MaterialPageRoute(
-                  builder: (_) => const LoginScreen(),
+                  builder: (_) => const NotificationScreen(),
                 ),
-
-                    (route) => false,
-
               );
-
             },
           ),
+
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Welcome Header
-              const Text(
-                'Welcome Back, Admin 👋',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: darkGreen,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'System Overview & Quick Management',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // 1. STATS OVERVIEW SECTION
-              const Text(
-                'Statistics',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: darkGreen,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      title: 'Students',
-                      count: '128',
-                      icon: Icons.school,
-                      color: primaryGreen,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const StudentListScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      title: 'Teachers',
-                      count: '24',
-                      icon: Icons.person_outline,
-                      color: const Color(0xFF388E3C),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const TeacherListScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Total Accounts Card
-              _buildFullStatCard(
-                title: 'Total System Accounts',
-                count: '152 Active Users',
-                icon: Icons.people_alt_outlined,
-                color: darkGreen,
-              ),
-
-              const SizedBox(height: 28),
-
-              // 2. QUICK MANAGEMENT ACTIONS
-              const Text(
-                'Quick Actions',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: darkGreen,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: QuickAccessCard(
-                      title: "Students",
-                      icon: Icons.school,
-                      iconColor: Colors.blue,
-                      backgroundColor: const Color(0xFFEAF4FF),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const StudentListScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  Expanded(
-                    child: QuickAccessCard(
-                      title: "Teachers",
-                      icon: Icons.person,
-                      iconColor: Colors.green,
-                      backgroundColor: const Color(0xFFEAF4FF),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const TeacherListScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-
-
-              const SizedBox(height: 28),
-
-              // 3. RECENT ACTIVITY LOGS
-              const Text(
-                'Recent System Activity',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: darkGreen,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-
-            ],
+      body: _getCurrentPage(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: primaryGreen,
+        unselectedItemColor: Colors.grey,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
           ),
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.school),
+            label: "Students",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Teachers",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: "Profile",
+          ),
+        ],
       ),
     );
   }
@@ -303,6 +316,182 @@ class AdminDashboardScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // 👇 OUTSIDE build()
+  Widget _getCurrentPage() {
+
+    switch (_selectedIndex) {
+
+      case 0:
+        return _buildHomePage();
+
+      case 1:
+        return const StudentListScreen();
+
+      case 2:
+        return const TeacherListScreen();
+
+      case 3:
+        return const ProfileScreen();
+
+      default:
+        return _buildHomePage();
+
+    }
+
+  }
+  Widget _buildHomePage() {
+    const primaryGreen = Color(0xFF2E7D32);
+    const darkGreen = Color(0xFF1B5E20);
+    // Get providers
+    final studentProvider = context.watch<StudentProvider>();
+    final teacherProvider = context.watch<TeacherProvider>();
+
+    // Show loading while fetching data
+    if (studentProvider.isLoading || teacherProvider.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    final studentCount = context.watch<StudentProvider>().students.length;
+    final teacherCount = context.watch<TeacherProvider>().teachers.length;
+    return SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await context.read<StudentProvider>().fetchStudents();
+            await context.read<TeacherProvider>().fetchTeachers();
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                const Text(
+                  "Welcome Back 👋",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: darkGreen,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  "Administrator",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                const Text(
+                  "Statistics",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: darkGreen,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+
+                    Expanded(
+                      child: _buildStatCard(
+                        title: "Students",
+                        count:  studentCount.toString(),
+                        icon: Icons.school,
+                        color: primaryGreen,
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 1;
+                          });
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: _buildStatCard(
+                        title: "Teachers",
+                        count: teacherCount.toString(),
+                        icon: Icons.person_outline,
+                        color: Colors.green,
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 2;
+                          });
+                        },
+                      ),
+                    ),
+
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                const Text(
+                  "Quick Access",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: darkGreen,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+
+                    Expanded(
+                      child: QuickAccessCard(
+                        title: "Students",
+                        icon: Icons.school,
+                        iconColor: Colors.blue,
+                        backgroundColor: const Color(0xFFEAF4FF),
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 1;
+                          });
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    Expanded(
+                      child: QuickAccessCard(
+                        title: "Teachers",
+                        icon: Icons.person,
+                        iconColor: Colors.green,
+                        backgroundColor: const Color(0xFFEAF4FF),
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 2;
+                          });
+                        },
+                      ),
+                    ),
+
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+              ],
+            ),
+          ),
+        ),
     );
   }
 }
