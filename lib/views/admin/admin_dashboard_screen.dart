@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project_final_fullstack/views/admin/profile_screen.dart';
 import 'package:project_final_fullstack/views/admin/settings_screen.dart';
+import '../../services/api_service.dart';
 import '../../widgets/quick_access_card.dart';
 import '../students/student_list_screen.dart';
 import '../teachers/teacher_list_screen.dart';
@@ -61,11 +62,21 @@ class _AdminDashboardScreenState
                 user?.email ?? "",
               ),
 
-              currentAccountPicture: const CircleAvatar(
-                child: Icon(
+              currentAccountPicture: CircleAvatar(
+                radius: 35,
+                backgroundColor: Colors.white,
+                backgroundImage: user != null && user.profile.isNotEmpty
+                    ? NetworkImage(
+                  "${ApiService.serverUrl}/image/${user.profileFolder}/${user.profile}",
+                )
+                    : null,
+                child: user == null || user.profile.isEmpty
+                    ? const Icon(
                   Icons.person,
                   size: 40,
-                ),
+                  color: Colors.grey,
+                )
+                    : null,
               ),
 
               decoration: const BoxDecoration(
