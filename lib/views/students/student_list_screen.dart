@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/student_provider.dart';
 import '../../models/student/student_model.dart';
+import '../../services/api_service.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../admin/app_bottom_navigation.dart';
 import '../admin/profile_screen.dart';
@@ -260,7 +261,15 @@ class _StudentListScreenState extends State<StudentListScreen> {
               CircleAvatar(
                 radius: 30,
                 backgroundColor: Colors.green.shade100,
-                child: Text(
+                backgroundImage: student.photo != null &&
+                    student.photo!.isNotEmpty
+                    ? NetworkImage(
+                  "${ApiService.serverUrl}/image/students/${student.photo}",
+                )
+                    : null,
+                child: student.photo == null ||
+                    student.photo!.isEmpty
+                    ? Text(
                   student.firstName.isNotEmpty
                       ? student.firstName[0].toUpperCase()
                       : "?",
@@ -269,7 +278,8 @@ class _StudentListScreenState extends State<StudentListScreen> {
                     fontWeight: FontWeight.bold,
                     color: primaryGreen,
                   ),
-                ),
+                )
+                    : null,
               ),
 
               const SizedBox(width: 16),

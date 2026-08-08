@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../Utils/helper.dart';
 import '../../models/student/student_model.dart';
 import '../../providers/student_provider.dart';
+import '../../services/api_service.dart';
 import 'student_form_screen.dart';
 
 class StudentDetailScreen extends StatelessWidget {
@@ -290,18 +291,25 @@ class StudentDetailScreen extends StatelessWidget {
         child: Column(
           children: [
             CircleAvatar(
-              radius: 42,
+              radius: 60,
               backgroundColor: Colors.green.shade100,
-              child: Text(
-                student.firstName.isNotEmpty
-                    ? student.firstName[0].toUpperCase()
-                    : "S",
+              backgroundImage: student.photo != null &&
+                  student.photo!.isNotEmpty
+                  ? NetworkImage(
+                "${ApiService.serverUrl}/image/students/${student.photo}",
+              )
+                  : null,
+              child: student.photo == null ||
+                  student.photo!.isEmpty
+                  ? Text(
+                student.firstName[0].toUpperCase(),
                 style: const TextStyle(
-                  fontSize: 30,
+                  fontSize: 40,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2E7D32),
+                  color: Colors.green,
                 ),
-              ),
+              )
+                  : null,
             ),
             const SizedBox(height: 16),
             Text(

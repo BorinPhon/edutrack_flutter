@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/teacher/teacher_model.dart';
 import '../../providers/teacher_provider.dart';
+import '../../services/api_service.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../admin/app_bottom_navigation.dart';
 import '../admin/profile_screen.dart';
@@ -288,18 +289,16 @@ class _TeacherListScreenState
               //----------------------------------
 
               CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.green.shade100,
-                child: Text(
-                  teacher.firstName.isNotEmpty
-                      ? teacher.firstName[0].toUpperCase()
-                      : "?",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: primaryGreen,
-                  ),
-                ),
+                radius: 24,
+                backgroundImage:
+                teacher.photo != null && teacher.photo!.isNotEmpty
+                    ? NetworkImage(
+                  "${ApiService.serverUrl}/image/teachers/${teacher.photo}",
+                )
+                    : null,
+                child: teacher.photo == null || teacher.photo!.isEmpty
+                    ? const Icon(Icons.person)
+                    : null,
               ),
 
               const SizedBox(width: 16),

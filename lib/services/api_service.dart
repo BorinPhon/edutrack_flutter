@@ -6,8 +6,9 @@ import '../Utils/token_storage.dart';
 class ApiService {
   late final Dio _dio;
 
-  static const String baseUrl = 'http://38.242.236.109:8090/api';
-
+  //static const String baseUrl = 'http://38.242.236.109:8090/api';
+  static const String serverUrl = "http://192.168.0.108:30033";
+  static const String baseUrl = "$serverUrl/api";
   ApiService() {
     _dio = Dio(
       BaseOptions(

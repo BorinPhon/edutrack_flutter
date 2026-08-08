@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/student/student_model.dart';
 import '../../models/student/student_request.dart';
 import '../../providers/student_provider.dart';
+import '../../services/api_service.dart';
+import '../../services/upload_api_service.dart';
 
 class StudentFormScreen extends StatefulWidget {
   final StudentModel? student;
@@ -22,12 +27,17 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
 
   final _formKey = GlobalKey<FormState>();
 
+  final _dateOfBirthController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  final _photoController = TextEditingController();
+
+  File? _selectedImage;
+
+  final ImagePicker _picker = ImagePicker();
+  final UploadApiService _uploadApiService = UploadApiService();
 
   String _gender = "Male";
 
@@ -44,10 +54,26 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       _emailController.text = widget.student!.email ?? "";
       _phoneController.text = widget.student!.phone ?? "";
       _addressController.text = widget.student!.address ?? "";
-      _photoController.text = widget.student!.photo ?? "";
       _gender = widget.student!.gender ?? "Male";
       _dateOfBirth = widget.student!.dateOfBirth;
+      if (_dateOfBirth != null) {
+        _dateOfBirthController.text =
+        "${_dateOfBirth!.year}-${_dateOfBirth!.month.toString().padLeft(2, '0')}-${_dateOfBirth!.day.toString().padLeft(2, '0')}";
+      }
     }
+  }
+  Future<void> _pickImage() async {
+
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (image == null) return;
+
+    setState(() {
+      _selectedImage = File(image.path);
+    });
   }
   @override
   void dispose() {
@@ -56,8 +82,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
-    _photoController.dispose();
-
+    _dateOfBirthController.dispose();
     super.dispose();
   }
 
@@ -91,6 +116,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
             child: Column(
 
               children: [
+                _buildPhoto(),
 
                 const SizedBox(height: 20),
 
@@ -120,10 +146,6 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
 
                 _buildAddress(),
 
-                const SizedBox(height: 16),
-
-                _buildPhoto(),
-
                 const SizedBox(height: 30),
 
                 _buildSaveButton(),
@@ -140,6 +162,38 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
 
     );
 
+  }
+  Widget _buildPhoto() {
+    return Center(
+      child: GestureDetector(
+        onTap: _pickImage,
+        child: Stack(
+          children: [
+            CircleAvatar(
+              radius: 60,
+              backgroundColor: Colors.grey.shade200,
+              backgroundImage: _selectedImage != null
+                  ? FileImage(_selectedImage!)
+                  : widget.student?.photo != null &&
+                  widget.student!.photo!.isNotEmpty
+                  ? NetworkImage(
+                "${ApiService.serverUrl}/image/students/${widget.student!.photo}",
+              )
+                  : null,
+              child: _selectedImage == null &&
+                  (widget.student?.photo == null ||
+                      widget.student!.photo!.isEmpty)
+                  ? const Icon(
+                Icons.person,
+                size: 60,
+              )
+                  : null,
+            ),
+
+          ],
+        ),
+      ),
+    );
   }
   Widget _buildFirstName() {
     return TextFormField(
@@ -238,13 +292,11 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   }
   Widget _buildDateOfBirth() {
     return TextFormField(
+      controller: _dateOfBirthController,
       readOnly: true,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: "Date of Birth",
-        prefixIcon: const Icon(Icons.calendar_today),
-        hintText: _dateOfBirth == null
-            ? "Select Date"
-            : "${_dateOfBirth!.year}-${_dateOfBirth!.month.toString().padLeft(2, '0')}-${_dateOfBirth!.day.toString().padLeft(2, '0')}",
+        prefixIcon: Icon(Icons.calendar_today),
       ),
       validator: (value) {
         if (_dateOfBirth == null) {
@@ -253,11 +305,11 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
         return null;
       },
       onTap: () async {
-        FocusScope.of(context).requestFocus(FocusNode());
+        FocusScope.of(context).unfocus();
 
         final picked = await showDatePicker(
           context: context,
-          initialDate: DateTime(2005),
+          initialDate: _dateOfBirth ?? DateTime(2005),
           firstDate: DateTime(1980),
           lastDate: DateTime.now(),
         );
@@ -265,6 +317,9 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
         if (picked != null) {
           setState(() {
             _dateOfBirth = picked;
+
+            _dateOfBirthController.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
           });
         }
       },
@@ -287,16 +342,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       },
     );
   }
-  Widget _buildPhoto() {
-    return TextFormField(
-      controller: _photoController,
-      decoration: const InputDecoration(
-        labelText: "Photo",
-        hintText: "student.png",
-        prefixIcon: Icon(Icons.image_outlined),
-      ),
-    );
-  }
+
   Widget _buildSaveButton() {
     return SizedBox(
       width: double.infinity,
@@ -342,13 +388,26 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   }
   Future<void> _saveStudent() async {
 
-    if (!_formKey.currentState!.validate()) {
-      return;
+    String? photo = widget.student?.photo;
+
+    if (_selectedImage != null) {
+
+      print("========== START UPLOAD ==========");
+
+      photo = await _uploadApiService.uploadImage(
+        _selectedImage!,
+        "students",
+      );
+
+      print("Uploaded File Name = $photo");
+
+    } else {
+
+      print("No image selected");
+
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    print("Photo in Request = $photo");
 
     final request = StudentRequest(
       email: _emailController.text.trim(),
@@ -358,10 +417,10 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       dateOfBirth: _dateOfBirth!,
       phone: _phoneController.text.trim(),
       address: _addressController.text.trim(),
-      photo: _photoController.text.trim().isEmpty
-          ? "student.png"
-          : _photoController.text.trim(),
+      photo: photo ?? "",
     );
+
+    print(request.toJson());
 
     final provider = context.read<StudentProvider>();
 

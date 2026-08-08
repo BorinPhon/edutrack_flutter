@@ -189,7 +189,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
-
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _showContactAdminDialog,
+                          child: const Text(
+                            "Forgot Password?",
+                            style: TextStyle(color: primaryGreen),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 24),
 
                       if (authProvider.errorMessage != null)
@@ -253,15 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                  const RegisterScreen(),
-                                ),
-                              );
-                            },
+                            onPressed: _showContactAdminDialog,
                             child: const Text(
                               "Register",
                               style: TextStyle(
@@ -279,6 +280,23 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+  void _showContactAdminDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Contact Administrator"),
+        content: const Text(
+          "Please contact the administrator to create an account or reset your password.\n\nPhone: 015 237 422",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
       ),
     );
   }

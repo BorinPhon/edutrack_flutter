@@ -74,6 +74,8 @@ class StudentApiService {
   Future<StudentModel> updateStudent(
       int id,
       StudentRequest request) async {
+    print("===== UPDATE STUDENT =====");
+    print(request.toJson());
     try {
       final response = await _apiService.client.put(
         '/students/$id',

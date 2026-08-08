@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../Utils/helper.dart';
 import '../../models/teacher/teacher_model.dart';
 import '../../providers/teacher_provider.dart';
+import '../../services/api_service.dart';
 import 'teacher_form_screen.dart';
 class TeacherDetailScreen extends StatelessWidget {
   final TeacherModel teacher;
@@ -114,18 +115,13 @@ class TeacherDetailScreen extends StatelessWidget {
           children: [
 
             CircleAvatar(
-              radius: 42,
-              backgroundColor: Colors.green.shade100,
-              child: Text(
-                teacher.firstName.isNotEmpty
-                    ? teacher.firstName[0].toUpperCase()
-                    : "T",
-                style: const TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2E7D32),
-                ),
-              ),
+              radius: 60,
+              backgroundImage:
+              teacher.photo != null && teacher.photo!.isNotEmpty
+                  ? NetworkImage(
+                "${ApiService.serverUrl}/image/teachers/${teacher.photo}",
+              )
+                  : null,
             ),
 
             const SizedBox(height: 16),

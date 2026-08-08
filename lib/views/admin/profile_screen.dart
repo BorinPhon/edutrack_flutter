@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
-import '../teachers/teacher_list_screen.dart';
-import 'admin_dashboard_screen.dart';
 import 'app_bottom_navigation.dart';
+import 'change_password_screen.dart';
+import '../../models/Login/user_model.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -15,7 +16,7 @@ class ProfileScreen extends StatelessWidget {
     const primaryGreen = Color(0xFF2E7D32);
 
     final authProvider = context.watch<AuthProvider>();
-    final user = authProvider.loginResponse?.user;
+    final user = authProvider.loginResponse!.user;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -32,18 +33,15 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             CircleAvatar(
-              radius: 50,
-              backgroundColor: primaryGreen,
-              child: Text(
-                user != null
-                    ? user.firstName[0].toUpperCase()
-                    : "A",
-                style: const TextStyle(
-                  fontSize: 40,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              radius: 60,
+              backgroundImage: user.profile.isNotEmpty
+                  ? NetworkImage(
+                "${ApiService.serverUrl}/image/${user.profileFolder}/${user.profile}",
+              )
+                  : null,
+              child: user.profile.isEmpty
+                  ? const Icon(Icons.person, size: 60)
+                  : null,
             ),
 
             const SizedBox(height: 16),
@@ -112,7 +110,7 @@ class ProfileScreen extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.person),
                     title: const Text("Username"),
-                    subtitle: Text(user?.username ?? "-"),
+                    subtitle: Text(user.username ?? "-"),
                   ),
 
                   const Divider(height: 1),
@@ -120,7 +118,7 @@ class ProfileScreen extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.email),
                     title: const Text("Email"),
-                    subtitle: Text(user?.email ?? "-"),
+                    subtitle: Text(user.email ?? "-"),
                   ),
 
                   const Divider(height: 1),
@@ -128,7 +126,7 @@ class ProfileScreen extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.phone),
                     title: const Text("Phone"),
-                    subtitle: Text(user?.phoneNumber ?? "-"),
+                    subtitle: Text(user.phoneNumber ?? "-"),
                   ),
 
                   const Divider(height: 1),
@@ -137,7 +135,7 @@ class ProfileScreen extends StatelessWidget {
                     leading: const Icon(Icons.security),
                     title: const Text("Role"),
                     subtitle: Text(
-                      user != null && user.roles.isNotEmpty
+                      user.roles.isNotEmpty
                           ? user.roles.first.name
                           : "-",
                     ),
@@ -148,7 +146,7 @@ class ProfileScreen extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.circle),
                     title: const Text("Status"),
-                    subtitle: Text(user?.status ?? "-"),
+                    subtitle: Text(user.status ?? "-"),
                   ),
                 ],
               ),
@@ -169,8 +167,14 @@ class ProfileScreen extends StatelessWidget {
                     title: const Text("Change Password"),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
-                      // TODO
-                    },
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                          const ChangePasswordScreen(),
+                        ),
+                      );
+                    }
                   ),
 
                   const Divider(height: 1),

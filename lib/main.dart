@@ -8,27 +8,14 @@ import 'providers/theme_provider.dart';
 
 import 'views/splash/splash_screen.dart';
 
-void main() {
+Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(),
-        ),
-
-        ChangeNotifierProvider(
-          create: (_) => StudentProvider(),
-        ),
-
-        ChangeNotifierProvider(
-          create: (_) => TeacherProvider(),
-        ),
-
-        ChangeNotifierProvider(
-          create: (_) => ThemeProvider(),
-        ),
-
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => StudentProvider()),
+        ChangeNotifierProvider(create: (_) => TeacherProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const StudentManagementApp(),
     ),
